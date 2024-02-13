@@ -33,16 +33,26 @@ app.get("/", async (req, res) => {
 
 //INSERT new country
 app.post("/add", async (req, res) => {
-  const input = req.body["country"];
+  const input = req.body["country"];  //Russia -> Russian Federation
+  console.log(input);  //INdia
 
   try {
-    const result = await db.query(
-      "SELECT country_code FROM countries WHERE LOWER(country_name) LIKE '%' || $1 || '%';",
-      [input.toLowerCase()]
+    let result;
+    result = await db.query(
+      "SELECT country_code FROM countries WHERE country_name = $1;",
+      [input]
     );
+
+    if(result.rows==0) {
+        result = await db.query(
+        "SELECT country_code FROM countries WHERE LOWER(country_name) LIKE '%' || $1 || '%';",
+        [input.toLowerCase()]
+      );
+    }
 
     const data = result.rows[0];
     const countryCode = data.country_code;
+    console.log(data);
     try {
       await db.query(
         "INSERT INTO visited_countries (country_code) VALUES ($1)",
